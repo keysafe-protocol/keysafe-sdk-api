@@ -16,7 +16,11 @@ futures-util = { version = "=0.3.17", default-features = false, features = ["sin
 scoped-tls = "=1.0"
 proc-macro2 = { version = "=1.0.32" }
 quote = { version = "=1.0.10" }
+<<<<<<< HEAD
 openssl = "=0.10.40"
+=======
+openssl = "=0.10.38"
+>>>>>>> 1b3e911b8de51b088af959536c6354d8d841fb6d
 lettre = "0.10.0-rc.4"
 serde_derive = "1.0"
 serde = "1.0"
