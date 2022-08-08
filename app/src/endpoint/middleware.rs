@@ -7,7 +7,7 @@ use futures_util::future::LocalBoxFuture;
 
 pub struct VerifyToken;
 
-use crate::endpoint::auth_token;
+use crate::endpoint::auth_token::*;
 use crate::endpoint::service::*;
 
 impl<S, B> Transform<S, ServiceRequest> for VerifyToken
@@ -60,7 +60,7 @@ where
         }
         let endex = request.app_data::<web::Data<AppState>>().unwrap();
         let secret = &endex.conf.get("secret").unwrap();
-        if auth_token::verify_token(request.headers().get("Authorization"), secret) {
+        if verify_token(request.headers().get("Authorization"), secret) {
             println!("path that requires token and verifying.");
             let res = self.service.call(request);
             return Box::pin(async move {
