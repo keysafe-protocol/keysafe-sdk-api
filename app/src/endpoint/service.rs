@@ -247,7 +247,7 @@ pub async fn seal(
     let claims2 = claims.unwrap();
     let account = claims2.sub.to_string();
     println!("account is {}", account);
-
+/*
     let e = &endex.enclave;
     let sealed_size = calc_tee_size(e.geteid(), &seal_req.cipher_secret);
     let mut retval = sgx_status_t::SGX_SUCCESS;
@@ -281,6 +281,7 @@ pub async fn seal(
         },
         _ => println!("sgx sealing failed")
     }
+*/
     persistence::insert_user_tee(
         &endex.db_pool,
         persistence::UserTee {
