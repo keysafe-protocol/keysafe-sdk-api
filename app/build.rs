@@ -16,8 +16,7 @@
 // specific language governing permissions and limitations
 // under the License..
 
-=======
->>>>>>> 1b3e911b8de51b088af959536c6354d8d841fb6d
+
 use std::env;
 
 fn main () {

@@ -122,21 +122,14 @@ pub async fn auth(
     auth_req: web::Json<AuthReq>,
     endex: web::Data<AppState>
 ) -> HttpResponse {
-    let e = &endex.enclave;
-    let mut code :u32 = 0; // get confirm code from tee
-    let result = unsafe {
-        ecall::ec_auth(e.geteid(),
-            &mut code,
-            auth_req.account.as_ptr() as *const c_char,
-            auth_req.key.as_ptr() as *const c_char
-        )
-    };
-    match result {
-        sgx_status_t::SGX_SUCCESS =>  {
-            sendmail(&auth_req.account, &code.to_string(), &endex.conf);
-            HttpResponse::Ok().json(BaseResp{status: SUCC.to_string()})
-        },
-        _ => HttpResponse::Ok().json(BaseResp{status: FAIL.to_string()})
+    let result = gen_random();
+    let sr = sendmail(&auth_req.account, &result.to_string(), &endex.conf);
+    if sr == 0 {
+        let mut states = user_state.state.lock().unwrap();
+        states.insert(auth_req.account.clone(), result.to_string());
+        HttpResponse::Ok().json(BaseResp{status: SUCC.to_string()})
+    } else {
+        HttpResponse::Ok().json(BaseResp{status: FAIL.to_string()})
     }
 }
 
@@ -159,36 +152,26 @@ pub async fn auth_confirm(
     confirm_req: web::Json<ConfirmReq>,
     endex: web::Data<AppState>
 ) -> HttpResponse {
-    let e = &endex.enclave;
-    let mut retval = sgx_status_t::SGX_SUCCESS;
-    // cipher text to bytes
-    let code = hex::decode(&confirm_req.cipher_code).expect("Decode Failed.");
-    let result = unsafe {
-        ecall::ec_auth_confirm(
-            e.geteid(),
-            &mut retval,
-            confirm_req.account.as_ptr() as *const c_char,
-            code.as_ptr() as *const c_char,
-            u32::try_from(code.len()).unwrap(),
-        )
-    };
-    match result {
-        sgx_status_t::SGX_SUCCESS =>  {
-            HttpResponse::Ok().json(
-                ConfirmResp {
-                    status: SUCC.to_string(),
-                    token: encode(
-                        &Header::default(), 
-                        &Claims {
-                            sub: confirm_req.account.clone(),
-                            exp: (system_time() + 7 * 24 * 3600).try_into().unwrap()
-                        },
-                        &EncodingKey::from_secret(&endex.conf["secret"].as_bytes()),
+    let mut states = user_state.state.lock().unwrap();
+    if let Some(v) = states.get(&confirm_req.account) {
+        // when confirm code match, return a new token for current session
+        if v == &confirm_req.cipher_code {
+            println!("generating token with secret {}", &endex.conf["secret"]);
+            return HttpResponse::Ok().json(ConfirmResp{
+                status: SUCC.to_string(),
+                token: encode(
+                    &Header::default(), 
+                    &auth_token::Claims{
+                        sub: confirm_req.account.clone(),
+                        exp: (system_time() + 7 * 24 * 3600).try_into().unwrap()
+                    },
+                    &EncodingKey::from_secret(&endex.conf["secret"].as_bytes()),
                 ).unwrap()
-            })
-        },
-        _ => HttpResponse::Ok().json(BaseResp{status: FAIL.to_string()})
-    }
+            });
+        } 
+    }       
+    states.remove(&confirm_req.account); 
+    HttpResponse::Ok().json(BaseResp{status: FAIL.to_string()})
 }
 
 #[derive(Debug, Serialize, Deserialize)]
