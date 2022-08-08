@@ -120,7 +120,8 @@ pub struct AuthReq {
 #[post("/ks/auth")]
 pub async fn auth(
     auth_req: web::Json<AuthReq>,
-    endex: web::Data<AppState>
+    endex: web::Data<AppState>,
+    user_state: web::Data<UserState>
 ) -> HttpResponse {
     let result = gen_random();
     let sr = sendmail(&auth_req.account, &result.to_string(), &endex.conf);
@@ -150,7 +151,8 @@ pub struct ConfirmResp {
 #[post("/ks/auth_confirm")]
 pub async fn auth_confirm(
     confirm_req: web::Json<ConfirmReq>,
-    endex: web::Data<AppState>
+    endex: web::Data<AppState>,
+    user_state: web::Data<UserState>
 ) -> HttpResponse {
     let mut states = user_state.state.lock().unwrap();
     if let Some(v) = states.get(&confirm_req.account) {
