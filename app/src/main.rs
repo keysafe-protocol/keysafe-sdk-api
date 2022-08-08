@@ -132,6 +132,7 @@ async fn main() -> std::io::Result<()> {
             .service(exchange_key)
             .service(auth)
             .service(auth_confirm)
+            .service(info)
             .service(seal)
             .service(unseal)
             .service(hello)
