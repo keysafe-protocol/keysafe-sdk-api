@@ -22,6 +22,7 @@ extern "C" {
 
 sgx_status_t ecall_aes_gcm_128_encrypt(const uint8_t* plaintext, size_t len, uint8_t* ciphertext, uint8_t mac[16]);
 sgx_status_t ecall_aes_gcm_128_decrypt(const uint8_t* ciphertext, size_t len, uint8_t mac[16], uint8_t* plaintext);
+sgx_status_t seal(uint8_t* content, uint32_t content_size, uint8_t* sealed_content, uint32_t sealed_size);
 void t_global_init_ecall(uint64_t id, const uint8_t* path, size_t len);
 void t_global_exit_ecall(void);
 
