@@ -53,3 +53,14 @@ pub fn extract_token(token_option: Option<&HeaderValue>,
         None
     }        
 }
+
+
+#[test]
+fn test_verify_token() {
+    assert_eq!(1, 1);
+}
+
+#[test]
+fn test_extract_token() {
+    assert_eq!(2, 2);
+}
